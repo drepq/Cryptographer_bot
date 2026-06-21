@@ -26,20 +26,29 @@ async def first_message(message: Message):
 """, reply_markup=kb)
 @router.message(F.text.lower() == "encode base64")
 async def encode_base64(message: Message):
-    text = message.text
-    encode_text = base64.b64encode(text.encode("utf-8")).decode('utf-8')
-    await message.answer(encode_text)
+    wait_users[message.from_user.id] = "encode_base64"
+    await message.answer("введите текст")
 
 @router.message(F.text.lower() == "decode base64")
 async def decode_base64(message: Message):
-    text = message.text
-
-    decode_text = base64.b64decode(text).decode('utf-8',  errors='ignore')
-    await message.answer(decode_text)
+    wait_users[message.from_user.id] = "decode_base64"
+    await message.answer("введите текст")
 
 @router.message(F.text)
 async def check(message: Message):
     id = message.from_user.id
 
-    if id in wait_users.keys:
-        pass
+    if id in wait_users:
+        
+        type = wait_users[id]
+        match type:
+            case "encode_base64":
+                text = message.text
+                encode_text = base64.b64encode(text.encode("utf-8")).decode('utf-8')
+                await message.answer(encode_text)
+                wait_users.pop(id)
+            case "decode_base64":
+                text = message.text
+                decode_text = base64.b64decode(text).decode('utf-8', errors='ignore')
+                await message.answer(decode_text)
+                wait_users.pop(id)
